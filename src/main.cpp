@@ -1,33 +1,6 @@
 #include <iostream>
 #include "memory.h"
 
-DWORD GetProcessIdByName(LPCTSTR processName) {
-  DWORD processId = 0;
-
-  // get a snapshot of all processes currently running
-  HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-
-  // check if invalid snapshot
-  if (snapshot == INVALID_HANDLE_VALUE) return processId;
-
-  PROCESSENTRY32 processEntry { };
-  processEntry.dwSize = sizeof(processEntry);
-
-  if (Process32First(snapshot, &processEntry)) {
-    // loop through processes in snapshot
-    do {
-      // wchar_t case insensitive string compare to find matching process name
-      if (!lstrcmpi(processEntry.szExeFile, processName)) {
-        CloseHandle(snapshot);
-        return processEntry.th32ProcessID;
-      }
-    } while (Process32Next(snapshot, &processEntry));
-  }
-
-  CloseHandle(snapshot);
-  return 0;
-}
-
 int main() {
   const char* processName = "ac_client.exe";
 
@@ -54,8 +27,6 @@ int main() {
     std::cout << "Base address could not be retrieved" << '\n';
     return 1;
   }
-
-  // EC
 
   // get base address of pointer chain (entity object pointer)
   // ac_client.exe+0018AC00
