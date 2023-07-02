@@ -5,6 +5,7 @@
 ### Features
 
 - It can modify the health value.
+- It has a namespace containing the offsets that i used.
 - Written with x86 and c++ 20.
 - If you need a memory handler, i wrote one, look [memory.h](src/memory.h).
 
@@ -13,7 +14,7 @@
 1. Download the .exe
 2. Open the Assault Cube and select a map (empty)
 3. Double click the .exe
-4. Done!
+4. Done! Press numpad 1 to assign you new health.
 
 ### Build
 
@@ -39,10 +40,10 @@ You are welcome to open issues and pull requests!
 These are the contents that i consume to develop this library:
 
 - [Cheat Engine](https://cheatengine.org) - It is a memory scanner and it helped me a lot when i was looking for the base pointer address and the offsets.
-    - [How to get offsets with Cheat Engine](https://www.youtube.com/watch?v=8oC0w6WhZ1E)
-- @Mattlau1 [assault cube cheat](https://github.com/mattlau1/assault-cube-cheats/blob/main/external_cheat/main.cpp)
-- [Read Memory of Process](https://stackoverflow.com/questions/48208782/read-memory-of-process-c)
-- [Can't Get Process Id (windows)](https://stackoverflow.com/questions/31147690/c-cant-get-process-id-windows) 
+    - [How to get offsets with Cheat Engine](https://www.youtube.com/watch?v=8oC0w6WhZ1E).
+- [@mattlau1](https://github.com/mattlau1) - [Assault Cube Cheat](https://github.com/mattlau1/assault-cube-cheats/blob/main/external_cheat/main.cpp).
+- [Read Memory of Process](https://stackoverflow.com/questions/48208782/read-memory-of-process-c).
+- [Can't Get Process Id (windows)](https://stackoverflow.com/questions/31147690/c-cant-get-process-id-windows).
 
 ## 📝 License
 
