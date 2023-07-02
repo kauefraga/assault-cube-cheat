@@ -6,36 +6,44 @@
 #include <cstdint>
 #include <vector>
 
-DWORD GetProcessIdByName(LPCTSTR processName) {
-  DWORD processId = 0;
+/// @brief Gets a process identifier by its name.
+/// @param process_name - The process to be find.
+/// @returns A process identifier.
+DWORD get_process_id_by_name(LPCTSTR process_name) {
+  DWORD process_id = 0;
 
-  // get a snapshot of all processes currently running
+  // Get a snapshot of all processes currently running
   HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
-  // check if invalid snapshot
-  if (snapshot == INVALID_HANDLE_VALUE) return processId;
+  // Check if invalid snapshot
+  if (snapshot == INVALID_HANDLE_VALUE) return process_id;
 
-  PROCESSENTRY32 processEntry{ };
-  processEntry.dwSize = sizeof(processEntry);
+  PROCESSENTRY32 process_entry { };
+  process_entry.dwSize = sizeof(process_entry);
 
-  if (Process32First(snapshot, &processEntry)) {
-    // loop through processes in snapshot
+  if (Process32First(snapshot, &process_entry)) {
+    // Loop through processes in snapshot
     do {
       // wchar_t case insensitive string compare to find matching process name
-      if (!lstrcmpi(processEntry.szExeFile, processName)) {
+      if (!lstrcmpi(process_entry.szExeFile, process_name)) {
         CloseHandle(snapshot);
-        return processEntry.th32ProcessID;
+        return process_entry.th32ProcessID;
       }
-    } while (Process32Next(snapshot, &processEntry));
+    } while (Process32Next(snapshot, &process_entry));
   }
 
   CloseHandle(snapshot);
   return 0;
 }
 
-uintptr_t GetModuleBaseAddress(DWORD dwProcID, const char* szModuleName) {
-  uintptr_t ModuleBaseAddress = 0;
-  HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, dwProcID);
+/// @brief Gets a module base address by taking a snapshot of the given process and searching for its module name.
+/// @param process_id - The process identifier of the process to be included in the snapshot. This parameter can be zero to indicate the current process.
+/// @param module_name - The module name to be searched. 
+/// @returns An module base address.
+uintptr_t get_module_base_address(DWORD process_id, const char* module_name) {
+  uintptr_t module_base_address = 0;
+
+  HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, process_id);
 
   if (snapshot != INVALID_HANDLE_VALUE) {
     MODULEENTRY32 ModuleEntry32 { };
@@ -43,8 +51,8 @@ uintptr_t GetModuleBaseAddress(DWORD dwProcID, const char* szModuleName) {
 
     if (Module32First(snapshot, &ModuleEntry32)) {
       do {
-        if (strcmp((char*) ModuleEntry32.szModule, szModuleName) == 0) {
-          ModuleBaseAddress = (uintptr_t) ModuleEntry32.modBaseAddr;
+        if (strcmp((char*) ModuleEntry32.szModule, module_name) == 0) {
+          module_base_address = (uintptr_t) ModuleEntry32.modBaseAddr;
           break;
         }
       } while (Module32Next(snapshot, &ModuleEntry32));
@@ -53,14 +61,14 @@ uintptr_t GetModuleBaseAddress(DWORD dwProcID, const char* szModuleName) {
     CloseHandle(snapshot);
   }
 
-  return ModuleBaseAddress;
+  return module_base_address;
 }
 
-/// @brief Gets dynamic memory allocation address (DMAA) with offsets
+/// @brief Finds a dynamic memory allocation address (DMAA) with offsets.
 /// @param process - A handle to the process with memory that is being read.
 /// @param p_base_address - A pointer to the base address in the specified process from which to read.
 /// @param offsets - A list of offsets.
-/// @returns An address 
+/// @returns An address.
 uintptr_t findDMAA(
   HANDLE process,
   uintptr_t p_base_address,
