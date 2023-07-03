@@ -37,7 +37,7 @@ You are welcome to open issues and pull requests!
 
 ## 🧻 Resources
 
-These are the contents that i consume to develop this library:
+These are the contents that i consume to develop this cheat:
 
 - [Cheat Engine](https://cheatengine.org) - It is a memory scanner and it helped me a lot when i was looking for the base pointer address and the offsets.
     - [How to get offsets with Cheat Engine](https://www.youtube.com/watch?v=8oC0w6WhZ1E).
