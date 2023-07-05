@@ -9,7 +9,7 @@
 /// @brief Gets a process identifier by its name.
 /// @param process_name - The process to be find.
 /// @returns A process identifier.
-DWORD get_process_id_by_name(LPCTSTR process_name) {
+DWORD get_process_id_by_name(const LPCTSTR process_name) {
   DWORD process_id = 0;
 
   // Get a snapshot of all processes currently running
@@ -18,13 +18,13 @@ DWORD get_process_id_by_name(LPCTSTR process_name) {
   // Check if invalid snapshot
   if (snapshot == INVALID_HANDLE_VALUE) return process_id;
 
-  PROCESSENTRY32 process_entry { };
+  PROCESSENTRY32 process_entry{ };
   process_entry.dwSize = sizeof(process_entry);
 
   if (Process32First(snapshot, &process_entry)) {
     // Loop through processes in snapshot
     do {
-      // wchar_t case insensitive string compare to find matching process name
+      // unicode
       if (!lstrcmpi(process_entry.szExeFile, process_name)) {
         CloseHandle(snapshot);
         return process_entry.th32ProcessID;
@@ -36,23 +36,32 @@ DWORD get_process_id_by_name(LPCTSTR process_name) {
   return 0;
 }
 
+/// @brief Open a process (all access) with a given process identifier.
+/// @param process_id - The identifier of the process to be opened.
+/// @returns A process handle.
+HANDLE open_process(DWORD process_id) {
+  HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, false, process_id);
+
+  return process;
+}
+
 /// @brief Gets a module base address by taking a snapshot of the given process and searching for its module name.
-/// @param process_id - The process identifier of the process to be included in the snapshot. This parameter can be zero to indicate the current process.
+/// @param process_id - The identifier of the process to be included in the snapshot. This parameter can be zero to indicate the current process.
 /// @param module_name - The module name to be searched. 
 /// @returns An module base address.
-uintptr_t get_module_base_address(DWORD process_id, const char* module_name) {
+uintptr_t get_module_base_address(DWORD process_id, const LPCTSTR module_name) {
   uintptr_t module_base_address = 0;
 
   HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, process_id);
 
   if (snapshot != INVALID_HANDLE_VALUE) {
-    MODULEENTRY32 ModuleEntry32 { };
+    MODULEENTRY32 ModuleEntry32{ };
     ModuleEntry32.dwSize = sizeof(MODULEENTRY32);
 
     if (Module32First(snapshot, &ModuleEntry32)) {
       do {
-        if (strcmp((char*) ModuleEntry32.szModule, module_name) == 0) {
-          module_base_address = (uintptr_t) ModuleEntry32.modBaseAddr;
+        if (strcmp(ModuleEntry32.szModule, module_name) == 0) {
+          module_base_address = (uintptr_t)ModuleEntry32.modBaseAddr;
           break;
         }
       } while (Module32Next(snapshot, &ModuleEntry32));
@@ -72,11 +81,11 @@ uintptr_t get_module_base_address(DWORD process_id, const char* module_name) {
 uintptr_t findDMAA(
   HANDLE process,
   uintptr_t p_base_address,
-  std::vector<unsigned int> offsets
+  std::vector<uintptr_t> offsets
 ) {
   uintptr_t address = p_base_address;
 
-  for (unsigned int i = 0; i < offsets.size(); ++i) {
+  for (uintptr_t i = 0; i < offsets.size(); ++i) {
     ReadProcessMemory(process, (BYTE*) address, &address, sizeof(address), nullptr);
     address += offsets[i];
   }
